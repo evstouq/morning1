@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Доброе утро</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #121214;
+            --glass-bg: rgba(20, 20, 25, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --text-main: #ededf2;
+            --text-muted: #a3a3b5;
+            --accent: #ffb48a; 
+            --danger: #ff6b6b;
+            --radius: 28px;
+            --font-main: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: linear-gradient(45deg, #0f111a, #1a1b26, #0f111a);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            overflow: hidden; 
+            position: relative;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .bg-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translateX(-50%) translateY(-50%);
+            z-index: -2;
+            object-fit: cover;
+            filter: blur(16px) brightness(0.4);
+            transition: opacity 1.2s ease;
+            opacity: 0; 
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(18, 18, 20, 0.5) 0%, rgba(18, 18, 20, 0.8) 100%);
+            z-index: -1;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: auto 1fr 1fr;
+            gap: 24px;
+            width: 100%;
+            max-width: 1600px;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 32px;
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            background: rgba(30, 30, 35, 0.55);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            letter-spacing: 0.5px;
+        }
+
+        .card h2 span { font-size: 0.85rem; opacity: 0.6; font-weight: 400; }
+
+        .header-card {
+            grid-column: span 4;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            backdrop-filter: none;
+            padding: 0 16px 16px 16px;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-card:hover { background: transparent; border-color: transparent; }
+
+        .time-wrapper { display: flex; align-items: center; gap: 32px; }
+        .time-block { display: flex; align-items: baseline; gap: 24px; }
+        .time { font-size: 6rem; font-weight: 300; letter-spacing: -2px; color: #fff; line-height: 1; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .date { font-size: 1.3rem; color: var(--text-muted); font-weight: 300; letter-spacing: 1px; }
+        
+        .alarm-btn {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        .alarm-btn:hover { background: rgba(255,255,255,0.05); }
+        .alarm-btn.active {
+            color: #fff;
+            border-color: var(--danger);
+            background: rgba(255, 107, 107, 0.15);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.2);
+        }
+
+        .currency {
+            font-size: 1.1rem;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--glass-border);
+            padding: 12px 24px;
+            border-radius: 40px;
+        }
+        .currency-delta.up { color: #5cb85c; }
+        .currency-delta.down { color: var(--danger); }
+
+        .weather-card { grid-column: span 1; grid-row: span 2; justify-content: space-between; }
+        .current-weather { display: flex; align-items: center; gap: 20px; }
+        .weather-temp { font-size: 4rem; font-weight: 300; line-height: 1; }
+        .weather-icon { font-size: 3rem; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); }
+        .weather-details { font-size: 1rem; color: var(--text-muted); line-height: 1.7; font-weight: 300; margin-top: 16px; }
+        
+        .hourly-forecast {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.2);
+            padding: 16px 20px;
+            border-radius: 20px;
+        }
+        .hourly-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 400; }
+
+        /* Новости (Без описаний под заголовком) */
+        .news-card { grid-column: span 1; grid-row: span 2; overflow: hidden; }
+        .news-list { list-style: none; display: flex; flex-direction: column; gap: 20px; height: 100%; overflow-y: auto; padding-right: 8px; }
+        .news-list::-webkit-scrollbar { width: 4px; }
+        .news-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+        
+        .news-item { display: flex; flex-direction: column; }
+        .news-title {
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            font-weight: 300;
+            transition: color 0.2s ease;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            opacity: 0.9;
+        }
+        .news-title:hover { color: var(--accent); opacity: 1; }
+
+        /* Стили всплывающего окна (Tooltip) для новостей */
+        #news-tooltip {
+            position: fixed;
+            top: 0; left: 0;
+            max-width: 380px;
+            background: rgba(20, 20, 25, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            font-weight: 300;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            z-index: 1000;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+        }
+        #news-tooltip.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .english-card { grid-column: span 1; justify-content: space-between; cursor: pointer; }
+        .eng-topic { font-weight: 500; color: var(--accent); margin-bottom: 12px; font-size: 1.1rem; }
+        .eng-rule { font-size: 1rem; margin-bottom: 16px; line-height: 1.6; font-weight: 300; }
+        .eng-example { background: rgba(0, 0, 0, 0.25); padding: 16px 20px; border-radius: 16px; font-size: 1rem; font-weight: 400; border-left: 2px solid var(--accent); }
+        .eng-translation { color: var(--text-muted); font-size: 0.9rem; margin-top: 8px; font-weight: 300; }
+        
+        .todo-card { grid-column: span 1; }
+        .todo-input-wrap { margin-bottom: 20px; }
+        .todo-input { width: 100%; background: rgba(0,0,0,0.25); border: 1px solid transparent; color: var(--text-main); padding: 14px 16px; border-radius: 12px; outline: none; font-size: 0.95rem; font-family: var(--font-main); transition: 0.3s ease; }
+        .todo-input::placeholder { color: var(--text-muted); font-weight: 300; }
+        .todo-input:focus { border-color: var(--glass-border); background: rgba(0,0,0,0.4); }
+        .todo-list { list-style: none; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 150px; }
+        .todo-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; font-weight: 300; }
+        .todo-item.done span { text-decoration: line-through; color: var(--text-muted); opacity: 0.5; }
+        .todo-text { cursor: pointer; flex: 1; transition: 0.2s; }
+        .todo-text:hover { opacity: 0.8; }
+        .todo-delete { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.4rem; padding-left: 12px; font-weight: 300; }
+        .todo-delete:hover { color: var(--danger); }
+
+        /* Быстрые ссылки с иконками */
+        .shortcuts-card { grid-column: span 2; justify-content: center; align-items: center; padding: 24px; }
+        .shortcut-grid { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+        .shortcut { 
+            background: rgba(0,0,0,0.3); border: 1px solid transparent; 
+            padding: 10px 24px 10px 20px; border-radius: 40px; color: var(--text-main); 
+            text-decoration: none; font-weight: 400; font-size: 0.95rem; 
+            transition: all 0.3s ease; 
+            display: flex; align-items: center; gap: 10px; 
+        }
+        .shortcut img { width: 18px; height: 18px; border-radius: 4px; }
+        .shortcut .emoji-icon { font-size: 16px; }
+        .shortcut:hover { background: rgba(255,255,255,0.05); border-color: var(--glass-border); transform: translateY(-2px); color: var(--accent); }
+
+        .loader { font-size: 0.95rem; color: var(--text-muted); font-weight: 300; }
+    </style>
+</head>
+<body>
+
+    <video id="bg-video-1" class="bg-video" muted playsinline></video>
+    <video id="bg-video-2" class="bg-video" muted playsinline></video>
+    <div class="overlay"></div>
+        
+    <!-- Скрытое стекло для обширного описания новости -->
+    <div id="news-tooltip"></div>
+
+    <div class="dashboard">
+        <!-- Шапка -->
+        <div class="card header-card">
+            <div class="time-wrapper">
+                <div class="time-block">
+                    <div class="time" id="clock">00:00</div>
+                    <div class="date" id="date">Загрузка...</div>
+                </div>
+                <button id="alarm-toggle" class="alarm-btn">
+                    🔔 07:00 <span id="alarm-status">Выкл</span>
+                </button>
+            </div>
+            <div class="currency" id="currency">USD: ...</div>
+        </div>
+
+        <div class="card weather-card">
+            <h2>Погода <span>Октябрьский</span></h2>
+            <div id="weather-content" class="loader">Получение данных...</div>
+        </div>
+
+        <!-- TechPowerUp -->
+        <div class="card news-card">
+            <h2>Железо <span>TechPowerUp</span></h2>
+            <ul class="news-list" id="news-hardware">
+                <li class="loader">Сбор и перевод новостей...</li>
+            </ul>
+        </div>
+
+        <!-- 3DNews -->
+        <div class="card news-card">
+            <h2>Технологии <span>3DNews</span></h2>
+            <ul class="news-list" id="news-tech">
+                <li class="loader">Сбор новостей...</li>
+            </ul>
+        </div>
+
+        <!-- Английский -->
+        <div class="card english-card" onclick="nextEngTip()">
+            <h2>Английский за завтраком <span>Кликни</span></h2>
+            <div id="eng-content">
+                <div class="eng-topic" id="eng-topic">...</div>
+                <div class="eng-rule" id="eng-rule">...</div>
+                <div class="eng-example">
+                    <div id="eng-ex-en">...</div>
+                    <div class="eng-translation" id="eng-ex-ru">...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Задачи -->
+        <div class="card todo-card">
+            <h2>Фокус на день</h2>
+            <div class="todo-input-wrap">
+                <input type="text" id="todo-input" class="todo-input" placeholder="Добавить цель..." onkeypress="handleTodoKey(event)">
+            </div>
+            <ul class="todo-list" id="todo-list"></ul>
+        </div>
+
+        <!-- Быстрые ссылки с иконками -->
+        <div class="card shortcuts-card">
+            <div class="shortcut-grid">
+                <a href="https://youtube.com" class="shortcut" target="_blank">
+                    <img src="https://s2.googleusercontent.com/s2/favicons?domain=youtube.com&sz=64" alt="YouTube">YouTube
+                </a>
+                <a href="http://127.0.0.1:8188" class="shortcut" target="_blank">
+                    <span class="emoji-icon">⚡</span>ComfyUI
+                </a>
+                <a href="https://github.com" class="shortcut" target="_blank">
+                    <img src="https://s2.googleusercontent.com/s2/favicons?domain=github.com&sz=64" alt="GitHub">GitHub
+                </a>
+                <a href="https://vk.com" class="shortcut" target="_blank">
+                    <img src="https://s2.googleusercontent.com/s2/favicons?domain=vk.com&sz=64" alt="VK">VK
+                </a>
+                <a href="https://mail.google.com" class="shortcut" target="_blank">
+                    <img src="https://s2.googleusercontent.com/s2/favicons?domain=mail.google.com&sz=64" alt="Почта">Почта
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- TOOLTIP LOGIC (Всплывающее окно для новостей) ---
+        const tooltip = document.getElementById('news-tooltip');
+        let tooltipVisible = false;
+
+        function showTooltip(e, el) {
+            const desc = el.querySelector('.hidden-desc').textContent;
+            if(desc && desc.trim() !== '') {
+                tooltip.textContent = desc;
+                tooltip.classList.add('visible');
+                tooltipVisible = true;
+                moveTooltip(e);
+            }
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove('visible');
+            tooltipVisible = false;
+        }
+
+        function moveTooltip(e) {
+            if(!tooltipVisible) return;
+            let x = e.clientX + 15;
+            let y = e.clientY + 15;
+            
+            if (x + tooltip.offsetWidth > window.innerWidth) {
+                x = window.innerWidth - tooltip.offsetWidth - 15;
+            }
+            if (y + tooltip.offsetHeight > window.innerHeight) {
+                y = window.innerHeight - tooltip.offsetHeight - 15;
+            }
+            
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+        }
+
+        // --- ЛОКАЛЬНЫЕ ВИДЕО ФОНЫ (С БЕСШОВНЫМ КРОССФЕЙДОМ) ---
+        const localVideos = { clear: "./clear.mp4", clouds: "./clouds.mp4", rain: "./rain.mp4", snow: "./snow.mp4", fog: "./fog.mp4" };
+        
+        function setVideoBackground(code) {
+            let videoType = 'clear'; 
+            if (code >= 1 && code <= 3) videoType = 'clouds'; 
+            else if (code == 45 || code == 48) videoType = 'fog'; 
+            else if ((code >= 51 && code <= 65) || code == 95) videoType = 'rain'; 
+            else if (code >= 71 && code <= 75) videoType = 'snow'; 
+
+            const src = localVideos[videoType];
+            let active = document.getElementById('bg-video-1');
+            let next = document.getElementById('bg-video-2');
+            let isFading = false;
+
+            active.src = src;
+            next.src = src;
+            active.playbackRate = 0.8;
+            next.playbackRate = 0.8;
+
+            active.onloadeddata = () => {
+                active.play();
+                active.style.opacity = 1;
+            };
+
+            setInterval(() => {
+                if (!active.duration || isFading) return;
+                if (active.duration - active.currentTime <= 1.2) {
+                    isFading = true;
+                    next.currentTime = 0;
+                    next.play();
+                    next.style.opacity = 1;
+                    active.style.opacity = 0;
+
+                    setTimeout(() => {
+                        active.pause();
+                        active.currentTime = 0;
+                        [active, next] = [next, active];
+                        isFading = false;
+                    }, 1200);
+                }
+            }, 100);
+        }
+
+        // --- БУДИЛЬНИК ---
+        let alarmEnabled = false;
+        let alarmPlayedToday = false;
+        let audioCtx = null;
+        document.getElementById('alarm-toggle').addEventListener('click', function() {
+            alarmEnabled = !alarmEnabled;
+            this.classList.toggle('active', alarmEnabled);
+            document.getElementById('alarm-status').textContent = alarmEnabled ? 'Вкл' : 'Выкл';
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        });
+        function playAlarmSound() {
+            if (!audioCtx) return;
+            function beep(time, freq) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'square'; osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0, time); gain.gain.linearRampToValueAtTime(0.1, time + 0.05);
+                gain.gain.setValueAtTime(0.1, time + 0.2); gain.gain.exponentialRampToValueAtTime(0.001, time + 0.6);
+                osc.start(time); osc.stop(time + 0.7);
+            }
+            const t = audioCtx.currentTime;
+            beep(t, 880); beep(t + 0.3, 880); beep(t + 1.0, 1046); beep(t + 1.3, 1046); beep(t + 2.0, 880); beep(t + 2.3, 880);
+        }
+
+        // --- ВРЕМЯ ---
+        function updateTime() {
+            const now = new Date();
+            const optTime = { timeZone: 'Asia/Yekaterinburg', hour: '2-digit', minute: '2-digit', hour12: false };
+            const optDate = { timeZone: 'Asia/Yekaterinburg', weekday: 'long', day: 'numeric', month: 'long' };
+            document.getElementById('clock').textContent = now.toLocaleTimeString('ru-RU', optTime);
+            let dateStr = now.toLocaleDateString('ru-RU', optDate);
+            document.getElementById('date').textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+            if (now.getHours() === 7 && now.getMinutes() === 0) {
+                if (alarmEnabled && !alarmPlayedToday) { playAlarmSound(); alarmPlayedToday = true; }
+            } else { alarmPlayedToday = false; }
+        }
+        setInterval(updateTime, 1000); updateTime();
+
+        // --- КУРС ---
+        async function fetchCurrency() {
+            try {
+                const res = await fetch('https://www.cbr-xml-daily.ru/daily_json.js');
+                const data = await res.json();
+                const usd = data.Valute.USD;
+                const delta = usd.Value - usd.Previous;
+                document.getElementById('currency').innerHTML = `<span>$ ${usd.Value.toFixed(2)} ₽</span><span class="currency-delta ${delta > 0 ? 'up' : 'down'}">${delta > 0 ? '+' : ''}${delta.toFixed(2)}</span>`;
+            } catch (e) { document.getElementById('currency').textContent = 'Курс недоступен'; }
+        }
+        fetchCurrency();
+
+        // --- ПОГОДА ---
+        const weatherCodes = { 0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️', 51: '🌧️', 53: '🌧️', 55: '🌧️', 61: '☔', 63: '☔', 65: '☔', 71: '❄️', 73: '❄️', 75: '❄️', 95: '⛈️' };
+        async function fetchWeather() {
+            try {
+                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=54.48&longitude=53.47&current=temperature_2m,apparent_temperature,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&timezone=Asia%2FYekaterinburg&wind_speed_unit=ms&forecast_hours=6');
+                const data = await res.json();
+                const cur = data.current;
+                setVideoBackground(cur.weather_code);
+                let hourlyHTML = '<div class="hourly-forecast">';
+                for(let i = 1; i <= 4; i++) {
+                    const hourDate = new Date(data.hourly.time[i]);
+                    hourlyHTML += `<div class="hourly-item"><span style="opacity: 0.6">${hourDate.getHours()}:00</span><span style="font-size:1.3rem">${weatherCodes[data.hourly.weather_code[i]] || '🌡️'}</span><span>${Math.round(data.hourly.temperature_2m[i]) > 0 ? '+'+Math.round(data.hourly.temperature_2m[i]) : Math.round(data.hourly.temperature_2m[i])}°</span></div>`;
+                }
+                hourlyHTML += '</div>';
+                document.getElementById('weather-content').innerHTML = `<div><div class="current-weather"><div class="weather-icon">${weatherCodes[cur.weather_code] || '🌡️'}</div><div class="weather-temp">${Math.round(cur.temperature_2m) > 0 ? '+'+Math.round(cur.temperature_2m) : Math.round(cur.temperature_2m)}°</div></div><div class="weather-details">Ощущается как ${Math.round(cur.apparent_temperature)}°<br>Ветер ${cur.wind_speed_10m} м/с</div></div>${hourlyHTML}`;
+            } catch (e) { document.getElementById('weather-content').innerHTML = '<div class="loader">Нет данных о погоде</div>'; }
+        }
+        fetchWeather();
+
+        // --- УТИЛИТА ПЕРЕВОДА ---
+        async function translateText(text) {
+            if (!text) return "";
+            try {
+                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(text)}`);
+                const data = await res.json();
+                return data[0].map(s => s[0]).join(''); 
+            } catch (e) {
+                return text; 
+            }
+        }
+
+        // --- НОВОСТИ: TechPowerUp (Железо) с переводом ---
+        async function fetchHardwareNews() {
+            const el = document.getElementById('news-hardware');
+            try {
+                const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.techpowerup.com/rss/news')}`);
+                const data = await res.json();
+                if(data.status === 'ok') {
+                    let html = '';
+                    for (const item of data.items.slice(0, 5)) {
+                        let descEn = item.description.replace(/<[^>]*>?/gm, '').trim();
+                        descEn = descEn.substring(0, 400) + (descEn.length > 400 ? '...' : ''); 
+                        
+                        const titleRu = await translateText(item.title);
+                        const descRu = await translateText(descEn);
+                        
+                        html += `
+                            <li class="news-item" onmouseenter="showTooltip(event, this)" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()">
+                                <a href="${item.link}" target="_blank" class="news-title">${titleRu}</a>
+                                <div class="hidden-desc" style="display: none;">${descRu}</div>
+                            </li>`;
+                    }
+                    el.innerHTML = html;
+                } else throw new Error();
+            } catch (e) { el.innerHTML = '<li class="loader">Сайт TechPowerUp недоступен</li>'; }
+        }
+        fetchHardwareNews();
+
+        // --- НОВОСТИ: 3DNews ---
+        async function fetch3DNews() {
+            const el = document.getElementById('news-tech');
+            try {
+                const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://3dnews.ru/news/rss/')}`);
+                const data = await res.json();
+                if(data.status === 'ok') {
+                    el.innerHTML = data.items.slice(0, 5).map(item => {
+                        let desc = item.description.replace(/<[^>]*>?/gm, '').trim();
+                        desc = desc.substring(0, 400) + (desc.length > 400 ? '...' : '');
+                        return `
+                            <li class="news-item" onmouseenter="showTooltip(event, this)" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()">
+                                <a href="${item.link}" target="_blank" class="news-title">${item.title}</a>
+                                <div class="hidden-desc" style="display: none;">${desc}</div>
+                            </li>`;
+                    }).join('');
+                } else throw new Error();
+            } catch (e) { el.innerHTML = '<li class="loader">Сайт 3DNews недоступен</li>'; }
+        }
+        fetch3DNews();
+
+        // --- АНГЛИЙСКИЙ (Аниме + Игры) ---
+        const engTips = [
+            { 
+                topic: "Third Conditional (Нереальное прошлое)", 
+                rule: "Используется, когда мы сожалеем о прошлом и представляем, как всё могло пойти иначе: If + Past Perfect, would have + V3.", 
+                en: "If Subaru had chosen another path, he wouldn't have died so many times.", 
+                ru: "Если бы Субару выбрал другой путь, он бы не умирал столько раз (Re:Zero)." 
+            },
+            { 
+                topic: "Present Perfect vs Past Simple", 
+                rule: "Present Perfect — важен результат прямо сейчас. Past Simple — действие осталось в прошлом с привязкой ко времени.", 
+                en: "Jin-Woo has reached S-rank! vs He entered the double dungeon last month.", 
+                ru: "Джин-Ву достиг S-ранга (он сейчас силён)! vs Он вошёл в двойное подземелье в прошлом месяце." 
+            },
+            { 
+                topic: "Used to + Infinitive", 
+                rule: "Действия или состояния в прошлом, которые больше не актуальны. Отлично подходит для описания трансформации героя.", 
+                en: "Thorfinn used to seek revenge, but now he wants to build a peaceful land.", 
+                ru: "Раньше Торфинн жаждал мести, но теперь он хочет построить мирную землю (Сага о Винланде)." 
+            },
+            { 
+                topic: "Active Voice vs Passive Voice", 
+                rule: "В английском языке фразы звучат живее и увереннее, когда подлежащее само совершает действие (Active Voice).", 
+                en: "Maomao solved the poisoning mystery. (Active) вместо The mystery was solved by Maomao.", 
+                ru: "Маомао разгадала тайну отравления (Монолог фармацевта)." 
+            },
+            { 
+                topic: "Past Continuous + Past Simple", 
+                rule: "Длительное действие на фоне (Past Continuous), которое прервало внезапное событие (Past Simple).", 
+                en: "David was walking down the street when the cyberpsycho attacked.", 
+                ru: "Дэвид шёл по улице, когда напал киберпсих (Киберпанк: Бегущие по краю)." 
+            },
+            { 
+                topic: "Phrasal Verb: Figure out", 
+                rule: "Означает «разобраться», «вычислить», «понять логику» путём размышлений или расследования.", 
+                en: "L needed time to figure out how Kira was killing criminals.", 
+                ru: "Элу потребовалось время, чтобы вычислить, как Кира убивает преступников (Тетрадь смерти)." 
+            },
+            { 
+                topic: "Future Perfect (Результат к сроку)", 
+                rule: "Действие, которое гарантированно завершится к определённому моменту в будущем: will have + V3.", 
+                en: "By the time Frieren reaches Aureole, she will have understood humans much better.", 
+                ru: "К тому времени, как Фрирен доберётся до Ореола, она гораздо лучше поймёт людей." 
+            },
+            { 
+                topic: "Phrasal Verb: Turn out", 
+                rule: "«Оказаться» (часто неожиданно). Незаменимый глагол для описания сюжетных поворотов.", 
+                en: "Cid's random lies always turn out to be completely true.", 
+                ru: "Случайная ложь Сида всегда оказывается чистой правдой (Восхождение в тени!)." 
+            },
+            { 
+                topic: "To get used to + V-ing", 
+                rule: "Процесс привыкания к непривычным условиям. После 'to' здесь всегда ставится глагол с окончанием -ing.", 
+                en: "Ainz had to get used to living inside his undead avatar.", 
+                ru: "Айнзу пришлось привыкать к жизни внутри своего аватара нежити (Повелитель)." 
+            },
+            { 
+                topic: "Second Conditional (Воображаемое настоящее)", 
+                rule: "Нереальная или маловероятная ситуация прямо сейчас: If + Past Simple, would + глагол.", 
+                en: "If I had a Death Note, I wouldn't write my own name in it.", 
+                ru: "Если бы у меня была Тетрадь смерти, я бы не стал записывать в неё своё имя." 
+            },
+            { 
+                topic: "Phrasal Verb: End up + V-ing", 
+                rule: "«В конечном итоге оказаться где-то / сделать что-то» (часто вопреки изначальным планам).", 
+                en: "Iori wanted a quiet college life, but he ended up joining a crazy diving club.", 
+                ru: "Иори хотел спокойной студенческой жизни, но в итоге вступил в безумный дайвинг-клуб (Необъятный океан)." 
+            },
+            { 
+                topic: "Modal Verb: Must have + V3", 
+                rule: "Почти 100% уверенность в том, что произошло в прошлом (логический вывод).", 
+                en: "Cheng Xiaoshi must have changed something in the past — the photo is different!", 
+                ru: "Чэн Сяоши, должно быть, что-то изменил в прошлом — фотография стала другой! (Агент времени)." 
+            },
+            { 
+                topic: "Phrasal Verb: Give up", 
+                rule: "«Сдаться» или «бросить привычку». Если после идёт глагол, ставим -ing.", 
+                en: "Mob never gives up trying to improve himself without using psychic powers.", 
+                ru: "Моб никогда не бросает попытки стать лучше без использования экстрасенсорных сил (Моб Психо 100)." 
+            },
+            { 
+                topic: "Present Perfect Continuous", 
+                rule: "Действие началось в прошлом и всё ещё длится до сих пор (акцент на длительности): have/has been + V-ing.", 
+                en: "Taki and Mitsuha have been looking for each other for years.", 
+                ru: "Таки и Мицуха ищут друг друга уже много лет (Твоё имя)." 
+            },
+            { 
+                topic: "Phrasal Verb: Set off", 
+                rule: "«Отправиться в путь» (в путешествие или экспедицию).", 
+                en: "Senku and his team set off to find the source of the petrification beam.", 
+                ru: "Сэнку и его команда отправились на поиски источника луча окаменения (Доктор Стоун)." 
+            },
+            { 
+                topic: "Should have + V3 (Упрёк или сожаление)", 
+                rule: "«Следовало бы сделать (но не сделал)». Используется для критики прошлых решений.", 
+                en: "Denji should have read the contract before trusting Makima.", 
+                ru: "Дэндзи следовало бы прочитать контракт, прежде чем доверять Макиме (Человек-бензопила)." 
+            },
+            { 
+                topic: "Phrasal Verb: Put off", 
+                rule: "«Откладывать на потом» (прокрастинировать).", 
+                en: "Kaguya and Shirogane keep putting off their confession because of pride.", 
+                ru: "Кагуя и Сироганэ продолжают откладывать своё признание из-за гордости (Госпожа Кагуя)." 
+            },
+            { 
+                topic: "Had better + Infinitive (Без 'to')", 
+                rule: "Настоятельный совет или предупреждение: «лучше бы сделать так, иначе будут последствия».", 
+                en: "You had better stay inside the walls when the Colossal Titan appears.", 
+                ru: "Тебе лучше оставаться внутри стен, когда появляется Колоссальный титан (Атака титанов)." 
+            },
+            { 
+                topic: "Present Perfect vs Past Simple", 
+                rule: "Present Perfect нужен для свежего результата, которым ты гордишься сейчас. Past Simple — для факта в прошлом.", 
+                en: "I have finally beaten Malenia! vs I fought her for three hours yesterday.", 
+                ru: "Я наконец-то победил Малению! vs Я сражался с ней три часа вчера (Elden Ring)." 
+            },
+            { 
+                topic: "Active Voice (Активный залог)", 
+                rule: "Ставь исполнителя действия на первое место — так фраза звучит в два раза динамичнее и естественнее.", 
+                en: "Our team won the clutch round. (Active) вместо The clutch round was won by our team.", 
+                ru: "Наша команда затащила клатч-раунд (Counter-Strike 2)." 
+            },
+            { 
+                topic: "Second Conditional (Нереальное условие)", 
+                rule: "Воображаемая ситуация и её последствие: If + Past Simple, would + глагол.", 
+                en: "If I installed too many cyberware implants, I would risk going cyberpsycho.", 
+                ru: "Если бы я поставил слишком много имплантов, я бы рискнул словить киберпсихоз (Cyberpunk 2077)." 
+            },
+            { 
+                topic: "Phrasal Verb: Run out of", 
+                rule: "Означает «закончиться», «исчерпать запас» чего-либо (патронов, времени, ресурсов).", 
+                en: "I am running out of ammo right before the boss fight.", 
+                ru: "У меня заканчиваются патроны прямо перед битвой с боссом (Dead Space)." 
+            },
+            { 
+                topic: "Past Perfect (Предпрошедшее время)", 
+                rule: "Действие, которое произошло раньше другого события в прошлом: had + V3.", 
+                en: "Geralt realized that the villagers had lied to him about the contract.", 
+                ru: "Геральт понял, что жители деревни солгали ему насчёт заказа (The Witcher 3)." 
+            },
+            { 
+                topic: "Phrasal Verb: Set up", 
+                rule: "«Настроить», «наладить», «построить систему или схему».", 
+                en: "It took me two hours to set up an efficient fuel generator pipeline.", 
+                ru: "У меня ушло два часа, чтобы наладить эффективную линию топливных генераторов (Satisfactory)." 
+            },
+            { 
+                topic: "Present Perfect Continuous", 
+                rule: "Действие началось в прошлом и продолжается до сих пор (акцент на процессе): have/has been + V-ing.", 
+                en: "Henry has been practicing sword fighting since dawn.", 
+                ru: "Индржих тренируется в фехтовании с самого рассвета (Kingdom Come: Deliverance II)." 
+            },
+            { 
+                topic: "Could have + V3 (Упущенная возможность)", 
+                rule: "«Могли бы сделать (но не сделали)». Идеально для разбора ошибок после катки.", 
+                en: "We could have captured the point if we had grouped up earlier.", 
+                ru: "Мы могли бы захватить точку, если бы сгруппировались раньше (Overwatch)." 
+            },
+            { 
+                topic: "Phrasal Verb: Break down", 
+                rule: "«Сломаться», «выйти из строя» (о технике или транспорте).", 
+                en: "My tank's engine broke down right in the middle of the open field.", 
+                ru: "Двигатель моего танка заглох прямо посреди открытого поля (War Thunder)." 
+            },
+            { 
+                topic: "First Conditional (Реальное условие)", 
+                rule: "Прямая закономерность в будущем или в механике игры: If + Present Simple, will + глагол.", 
+                en: "If you roll too early, the boss will catch you at the end of the animation.", 
+                ru: "Если ты перекатишься слишком рано, босс поймает тебя в конце анимации (Dark Souls II)." 
+            },
+            { 
+                topic: "Phrasal Verb: Back up", 
+                rule: "«Сделать резервную копию» (или «прикрыть» в бою).", 
+                en: "Always back up your world save before installing heavy industrial mods.", 
+                ru: "Всегда делай бэкап сохранения мира перед установкой тяжёлых индустриальных модов (Minecraft)." 
+            },
+            { 
+                topic: "Used to + Infinitive", 
+                rule: "Привычный стиль игры или поведения в прошлом, который со временем изменился.", 
+                en: "I used to rush into enemy camps, but now I prefer stealth.", 
+                ru: "Раньше я врывался во вражеские лагеря напролом, но теперь предпочитаю стелс (Assassin's Creed)." 
+            }
+        ];
+        let tipIndex = Math.floor(Math.random() * engTips.length);
+        function renderEngTip() {
+            document.getElementById('eng-topic').textContent = engTips[tipIndex].topic;
+            document.getElementById('eng-rule').textContent = engTips[tipIndex].rule;
+            document.getElementById('eng-ex-en').textContent = engTips[tipIndex].en;
+            document.getElementById('eng-ex-ru').textContent = engTips[tipIndex].ru;
+        }
+        function nextEngTip() { tipIndex = (tipIndex + 1) % engTips.length; renderEngTip(); }
+        renderEngTip();
+
+        // --- ЗАДАЧИ ---
+        let todos = JSON.parse(localStorage.getItem('morning_todos_v2')) || [];
+        function renderTodos() {
+            const list = document.getElementById('todo-list');
+            list.innerHTML = '';
+            todos.forEach((todo, index) => {
+                const li = document.createElement('li');
+                li.className = `todo-item ${todo.done ? 'done' : ''}`;
+                li.innerHTML = `<span class="todo-text" onclick="toggleTodo(${index})">${todo.text}</span><button class="todo-delete" onclick="deleteTodo(${index})">×</button>`;
+                list.appendChild(li);
+            });
+            localStorage.setItem('morning_todos_v2', JSON.stringify(todos));
+        }
+        function handleTodoKey(e) {
+            if(e.key === 'Enter' && e.target.value.trim() !== '') {
+                todos.push({ text: e.target.value.trim(), done: false });
+                e.target.value = ''; renderTodos();
+            }
+        }
+        function toggleTodo(index) { todos[index].done = !todos[index].done; renderTodos(); }
+        function deleteTodo(index) { todos.splice(index, 1); renderTodos(); }
+        renderTodos();
+    </script>
+</body>
+</html>
